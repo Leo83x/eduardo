@@ -255,12 +255,21 @@
       top: 0;
       transform-origin: 0 0;
       will-change: transform, opacity;
-      transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+      transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
       box-shadow: var(--shadow);
       border-radius: 6px;
       overflow: hidden;
       background: #fff;
       opacity: 1;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    body.mode-guided .comic-frame {
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
+      background: transparent;
     }
 
     .comic-frame.no-anim {
@@ -275,29 +284,32 @@
       display: block;
       pointer-events: none;
       user-select: none;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
-    /* Dim overlay outside active panel in Guided Mode */
+    /* Dim overlay outside active panel in Guided Mode (4 lightweight masks, no 9999px shadow) */
     .panel-spotlight {
       position: absolute;
       inset: 0;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.28s ease;
+      overflow: hidden;
+      transition: opacity 0.25s ease;
     }
 
     .mode-guided .panel-spotlight.visible {
       opacity: 1;
     }
 
-    .spot-rect {
+    .spot-mask {
       position: absolute;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.64);
-      border-radius: 4px;
-      transition: all 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+      background: rgba(0, 0, 0, 0.64);
+      transition: all 0.36s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .comic-frame.no-anim .spot-rect {
+    .comic-frame.no-anim .spot-mask {
       transition: none !important;
     }
 
@@ -676,9 +688,12 @@
   <main id="stage">
     <div class="canvas-wrap" id="canvas-wrap">
       <div class="comic-frame" id="comic-frame">
-        <img id="comic-img" src="" alt="Página da HQ" />
+        <img id="comic-img" src="" alt="Página da HQ" decoding="sync" />
         <div class="panel-spotlight" id="panel-spotlight">
-          <div class="spot-rect" id="spot-rect"></div>
+          <div class="spot-mask" id="spot-top"></div>
+          <div class="spot-mask" id="spot-bottom"></div>
+          <div class="spot-mask" id="spot-left"></div>
+          <div class="spot-mask" id="spot-right"></div>
         </div>
       </div>
     </div>
@@ -865,7 +880,10 @@
     const comicFrame = document.getElementById("comic-frame");
     const comicImg = document.getElementById("comic-img");
     const spotlight = document.getElementById("panel-spotlight");
-    const spotRect = document.getElementById("spot-rect");
+    const spotTop = document.getElementById("spot-top");
+    const spotBottom = document.getElementById("spot-bottom");
+    const spotLeft = document.getElementById("spot-left");
+    const spotRight = document.getElementById("spot-right");
     const scrollStage = document.getElementById("scroll-stage");
     const slider = document.getElementById("progress-slider");
     const progressLabel = document.getElementById("progress-label");
@@ -1052,10 +1070,25 @@
 
           // Esconde spotlight na Capa inteira para ela brilhar limpa
           spotlight.classList.toggle("visible", !pageObj.isCover);
-          spotRect.style.left = `${x}px`;
-          spotRect.style.top = `${y}px`;
-          spotRect.style.width = `${w}px`;
-          spotRect.style.height = `${h}px`;
+          spotTop.style.left = "0px";
+          spotTop.style.top = "0px";
+          spotTop.style.width = `${pageObj.w}px`;
+          spotTop.style.height = `${y}px`;
+
+          spotBottom.style.left = "0px";
+          spotBottom.style.top = `${y + h}px`;
+          spotBottom.style.width = `${pageObj.w}px`;
+          spotBottom.style.height = `${Math.max(0, pageObj.h - (y + h))}px`;
+
+          spotLeft.style.left = "0px";
+          spotLeft.style.top = `${y}px`;
+          spotLeft.style.width = `${x}px`;
+          spotLeft.style.height = `${h}px`;
+
+          spotRight.style.left = `${x + w}px`;
+          spotRight.style.top = `${y}px`;
+          spotRight.style.width = `${Math.max(0, pageObj.w - (x + w))}px`;
+          spotRight.style.height = `${h}px`;
 
           if (!animate && !pageChanged) {
             requestAnimationFrame(() => comicFrame.classList.remove("no-anim"));
