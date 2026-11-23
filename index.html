@@ -789,15 +789,22 @@
           [1, 1140,  787,  970,  815, false],
           [1,    0, 1591, 1218,  504, false],
           [1, 1198, 1591,  912,  504, false],
-          [1,    0, 2083, 2110,  687, true],          // Quadro horizontal largo (hint de zoom)
+          // Quadro horizontal largo: câmera deslizante em 3 paradas (ilumina a faixa inteira)
+          [1,    0, 2083,  760,  687, false, [0, 2083, 2110, 687]],
+          [1,  630, 2083,  760,  687, false, [0, 2083, 2110, 687]],
+          [1, 1300, 2083,  810,  687, false, [0, 2083, 2110, 687]],
 
           // Página 2 (6 quadros)
           [2,    0,    3, 1422,  978, false],
           [2, 1402,    3,  708,  978, false],
           [2,    0,  970, 1174,  734, true],          // Sequência 4 bolsos
           [2, 1151,  970,  959,  734, false],
-          [2,    0, 1693, 2110,  562, true],          // Sequência Roubaram meu carro
-          [2,    0, 2240, 2110,  530, true],          // Quadro horizontal largo
+          // Sequência Roubaram meu carro: câmera deslizante em 2 paradas
+          [2,    0, 1693, 1210,  562, false, [0, 1693, 2110, 562]],
+          [2, 1060, 1693, 1050,  562, false, [0, 1693, 2110, 562]],
+          // Quadro horizontal largo (Bom senso): câmera deslizante em 2 paradas
+          [2,    0, 2240, 1140,  530, false, [0, 2240, 2110, 530]],
+          [2,  950, 2240, 1160,  530, false, [0, 2240, 2110, 530]],
 
           // Página 3 (6 quadros)
           [3,    0,    3, 1014,  976, false],
@@ -1042,7 +1049,8 @@
       const availH = Math.max(200, vh - topPad - botPad);
 
       if (mode === "guided") {
-        const [pIdx, x, y, w, h, hasZoomHint] = currentEpisode.panels[panelIdx];
+        const [pIdx, x, y, w, h, hasZoomHint, spotOverride] = currentEpisode.panels[panelIdx];
+        const [sx, sy, sw, sh] = spotOverride || [x, y, w, h];
         const pageObj = currentEpisode.pages[pIdx];
         pageIdx = pIdx;
 
@@ -1073,22 +1081,22 @@
           spotTop.style.left = "0px";
           spotTop.style.top = "0px";
           spotTop.style.width = `${pageObj.w}px`;
-          spotTop.style.height = `${y}px`;
+          spotTop.style.height = `${sy}px`;
 
           spotBottom.style.left = "0px";
-          spotBottom.style.top = `${y + h}px`;
+          spotBottom.style.top = `${sy + sh}px`;
           spotBottom.style.width = `${pageObj.w}px`;
-          spotBottom.style.height = `${Math.max(0, pageObj.h - (y + h))}px`;
+          spotBottom.style.height = `${Math.max(0, pageObj.h - (sy + sh))}px`;
 
           spotLeft.style.left = "0px";
-          spotLeft.style.top = `${y}px`;
-          spotLeft.style.width = `${x}px`;
-          spotLeft.style.height = `${h}px`;
+          spotLeft.style.top = `${sy}px`;
+          spotLeft.style.width = `${sx}px`;
+          spotLeft.style.height = `${sh}px`;
 
-          spotRight.style.left = `${x + w}px`;
-          spotRight.style.top = `${y}px`;
-          spotRight.style.width = `${Math.max(0, pageObj.w - (x + w))}px`;
-          spotRight.style.height = `${h}px`;
+          spotRight.style.left = `${sx + sw}px`;
+          spotRight.style.top = `${sy}px`;
+          spotRight.style.width = `${Math.max(0, pageObj.w - (sx + sw))}px`;
+          spotRight.style.height = `${sh}px`;
 
           if (!animate && !pageChanged) {
             requestAnimationFrame(() => comicFrame.classList.remove("no-anim"));
