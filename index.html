@@ -261,6 +261,7 @@
       overflow: hidden;
       background: #fff;
       opacity: 1;
+      contain: layout style;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
     }
@@ -289,14 +290,13 @@
       transform: translateZ(0);
     }
 
-    /* Dim overlay outside active panel in Guided Mode (4 lightweight masks, no 9999px shadow) */
+    /* Dim overlay outside active panel in Guided Mode (zero-reflow masks) */
     .panel-spotlight {
       position: absolute;
       inset: 0;
       pointer-events: none;
       opacity: 0;
-      overflow: hidden;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.22s ease;
     }
 
     .mode-guided .panel-spotlight.visible {
@@ -306,11 +306,6 @@
     .spot-mask {
       position: absolute;
       background: rgba(0, 0, 0, 0.64);
-      transition: all 0.36s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .comic-frame.no-anim .spot-mask {
-      transition: none !important;
     }
 
     /* Scroll Mode (Webtoon) */
@@ -914,6 +909,7 @@
       currentEpisode.pages.forEach((p, i) => {
         const preload = new Image();
         preload.src = p.src;
+        if (preload.decode) preload.decode().catch(() => {});
 
         const card = document.createElement("div");
         card.className = "scroll-page-card";
